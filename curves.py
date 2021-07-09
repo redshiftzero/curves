@@ -52,6 +52,8 @@ class Point:
 
                 i = i << 1
 
+            return R
+
     def __rmul__(self, n: int):
         return self * n
 
@@ -131,7 +133,7 @@ if __name__=="__main__":
     P = Point(1, 2, curve)
     assert Point(-1, -4, curve) == P + P
     assert P == IdentityPoint(curve) + P
-    3 * P
+    assert 3 * P == Point(9, -26, curve)
     assert IdentityPoint(curve) == P + -P
 
     try:
