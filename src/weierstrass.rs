@@ -1,6 +1,8 @@
 use std::cmp::PartialEq;
 use std::ops::{Add, Mul, Neg};
 
+use crate::traits::EllipticCurve;
+
 /// Weierstrass normal form - arithmetic in affine space over the reals
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -80,19 +82,19 @@ pub enum Point {
 
 impl AffinePoint {
     fn new(x: i32, y: i32, curve: &WeierstrassNormalCurve) -> Self {
-        // Every time we create a point, we check if it's on the curve.
-        // If not, we panic.
-        let lhs = y.pow(2);
-        let rhs = x.pow(3) + curve.a * x + curve.b;
-        if rhs != lhs {
-            panic!("err: Point not on curve! ({}, {})", x, y)
-        }
-
-        Self {
+        let point = Self {
             x,
             y,
             curve: *curve,
+        };
+
+        // Every time we create a point, we check if it's on the curve.
+        // If not, we panic.
+        if !curve.is_point_on_curve(&Point::AffinePoint(point)) {
+            panic!("err: Point not on curve! ({}, {})", x, y)
         }
+
+        point
     }
 }
 
@@ -144,6 +146,7 @@ impl Add<AffinePoint> for AffinePoint {
     }
 }
 
+
 /// Curve in the form $y^2 = x^3 + ax + b$.
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct WeierstrassNormalCurve {
@@ -158,6 +161,24 @@ impl WeierstrassNormalCurve {
         }
 
         Self { a, b }
+    }
+}
+
+impl EllipticCurve<Point> for WeierstrassNormalCurve {
+    fn is_point_on_curve(&self, p: &Point) -> bool {
+        match p {
+            Point::IdentityPoint(_) => return true,
+            Point::AffinePoint(p) => {
+                let lhs = p.y.pow(2);
+                let rhs = p.x.pow(3) + self.a * p.x + self.b;
+
+                if rhs != lhs {
+                    return false
+                }
+            },
+        };
+
+        true
     }
 }
 
