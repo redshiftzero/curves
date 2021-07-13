@@ -1,20 +1,10 @@
 use std::cmp::PartialEq;
 use std::ops::{Add, Mul, Neg};
 
+use crate::scalar::Scalar;
 use crate::traits::EllipticCurve;
 
 /// Weierstrass normal form - arithmetic in affine space over the reals
-
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct Scalar {
-    num: i32,
-}
-
-impl Scalar {
-    fn new(num: i32) -> Self {
-        Self { num }
-    }
-}
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct IdentityPoint {
@@ -146,8 +136,6 @@ impl Add<AffinePoint> for AffinePoint {
     }
 }
 
-
-/// Curve in the form $y^2 = x^3 + ax + b$.
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct WeierstrassNormalCurve {
     pub a: i32,
@@ -173,9 +161,9 @@ impl EllipticCurve<Point> for WeierstrassNormalCurve {
                 let rhs = p.x.pow(3) + self.a * p.x + self.b;
 
                 if rhs != lhs {
-                    return false
+                    return false;
                 }
-            },
+            }
         };
 
         true

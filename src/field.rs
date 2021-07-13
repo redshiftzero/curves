@@ -1,47 +1,77 @@
-
-use core::ops::{Add, Neg, Mul, Sub};
+use core::ops::{Add, Mul, Neg, Sub};
 
 const MODULUS: u64 = 19;
+//const MODULUS: u64 = 227;
 
 /// `PrimeFieldElement19` represents an element of $GF(19)$ or $F_{19}$
 /// i.e. a finite field of prime characteristic 19.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct PrimeFieldElement19 {
-    x: u64,
+    pub x: u64,
 }
 
 impl PrimeFieldElement19 {
-    fn new(x: u64) -> Self {
-        PrimeFieldElement19{
+    pub fn new(x: u64) -> Self {
+        PrimeFieldElement19 {
             x: x.rem_euclid(MODULUS),
         }
     }
+
+    pub fn pow(&self, pow: u32) -> PrimeFieldElement19 {
+        PrimeFieldElement19::new(self.x.pow(pow).rem_euclid(MODULUS))
+    }
 }
 
-impl Add<&PrimeFieldElement19> for &PrimeFieldElement19 {
+impl Add<PrimeFieldElement19> for PrimeFieldElement19 {
     type Output = PrimeFieldElement19;
 
-    fn add(self, other: &PrimeFieldElement19) -> PrimeFieldElement19 {
+    fn add(self, other: PrimeFieldElement19) -> PrimeFieldElement19 {
         let x = (self.x + other.x).rem_euclid(MODULUS);
         PrimeFieldElement19::new(x)
     }
 }
 
-impl Sub<&PrimeFieldElement19> for &PrimeFieldElement19 {
+impl Sub<PrimeFieldElement19> for PrimeFieldElement19 {
     type Output = PrimeFieldElement19;
 
-    fn sub(self, other: &PrimeFieldElement19) -> PrimeFieldElement19 {
-        let x = (self.x - other.x).rem_euclid(MODULUS);
+    fn sub(self, other: PrimeFieldElement19) -> PrimeFieldElement19 {
+        let temp_x = self.x as i64;
+        let temp_other = other.x as i64;
+        let x: u64;
+        if temp_other > temp_x {
+            x = ((temp_x - temp_other + MODULUS as i64) as u64).rem_euclid(MODULUS);
+        } else {
+            x = ((temp_x - temp_other as i64) as u64).rem_euclid(MODULUS);
+        }
+
         PrimeFieldElement19::new(x)
     }
 }
 
-impl Mul<&PrimeFieldElement19> for &PrimeFieldElement19 {
+impl Mul<PrimeFieldElement19> for PrimeFieldElement19 {
     type Output = PrimeFieldElement19;
 
-    fn mul(self, other: &PrimeFieldElement19) -> PrimeFieldElement19 {
+    fn mul(self, other: PrimeFieldElement19) -> PrimeFieldElement19 {
         let x = (self.x * other.x).rem_euclid(MODULUS);
         PrimeFieldElement19::new(x)
+    }
+}
+
+impl Mul<u64> for PrimeFieldElement19 {
+    type Output = PrimeFieldElement19;
+
+    fn mul(self, other: u64) -> PrimeFieldElement19 {
+        let x = (self.x * other.rem_euclid(MODULUS)).rem_euclid(MODULUS);
+        PrimeFieldElement19::new(x)
+    }
+}
+
+impl Mul<PrimeFieldElement19> for u64 {
+    type Output = PrimeFieldElement19;
+
+    fn mul(self, other: PrimeFieldElement19) -> PrimeFieldElement19 {
+        //self * other
+        other * self
     }
 }
 
@@ -56,9 +86,9 @@ impl Neg for PrimeFieldElement19 {
 
 pub fn gcd(a: u64, b: u64) -> u64 {
     if b == 0 {
-        return a
+        return a;
     } else {
-        return gcd(b, a.rem_euclid(b))
+        return gcd(b, a.rem_euclid(b));
     }
 }
 
@@ -91,7 +121,6 @@ pub fn extended_gcd(a: u64, n: u64) -> u64 {
     t as u64
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,7 +146,7 @@ mod tests {
     fn add_field_elements() {
         let p1 = PrimeFieldElement19::new(5);
         let p2 = PrimeFieldElement19::new(5);
-        let result = &p1 + &p2;
+        let result = p1 + p2;
         assert_eq!(result.x, 10);
     }
 
@@ -125,7 +154,17 @@ mod tests {
     fn sub_field_elements() {
         let p1 = PrimeFieldElement19::new(10);
         let p2 = PrimeFieldElement19::new(20);
-        let result = &p1 - &p2;
+        let result = p1 - p2;
+        assert_eq!(result.x, 9);
+
+        let p1 = PrimeFieldElement19::new(16);
+        let p2 = PrimeFieldElement19::new(30);
+        let result = p1 - p2;
+        assert_eq!(result.x, 5);
+
+        let p1 = PrimeFieldElement19::new(5);
+        let p2 = PrimeFieldElement19::new(15);
+        let result = p1 - p2;
         assert_eq!(result.x, 9);
     }
 
@@ -133,7 +172,7 @@ mod tests {
     fn mul_field_elements() {
         let p1 = PrimeFieldElement19::new(1);
         let p2 = PrimeFieldElement19::new(20);
-        let result = &p1 * &p2;
+        let result = p1 * p2;
         assert_eq!(result.x, 1);
     }
 }
