@@ -159,6 +159,47 @@ impl WeierstrassAffinePoint {
     }
 }
 
+impl Mul<Scalar> for WeierstrassAffinePoint {
+    type Output = WeierstrassAffinePoint;
+
+    fn mul(self, scalar: Scalar) -> WeierstrassAffinePoint {
+        scalar * self
+    }
+}
+
+impl Mul<WeierstrassAffinePoint> for Scalar {
+    type Output = WeierstrassAffinePoint;
+
+    fn mul(self, point: WeierstrassAffinePoint) -> WeierstrassAffinePoint {
+        if self.num == 0 {
+            return WeierstrassAffinePoint::new(None, None, &point.curve);
+        } else if self.num < 0 {
+            -self * -point
+        } else {
+            let mut q = point;
+            let mut r: WeierstrassAffinePoint;
+            if self.num & 1 == 1 {
+                r = point;
+            } else {
+                r = WeierstrassAffinePoint::new(None, None, &point.curve);
+            }
+
+            let mut i = 2;
+
+            while i <= self.num {
+                q = q + q;
+
+                if (self.num & i) == i {
+                    r = q + r;
+                }
+
+                i = i << 1;
+            }
+            r
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -261,18 +302,14 @@ mod tests {
         );
         // Will panic if the result is not on the curve!
         let result = -p;
-        assert!(result != p, true);
+        assert_ne!(result, p);
     }
 
     #[test]
     fn negative_identity_is_identity() {
         let curve =
             WeierstrassNormalCurve::new(PrimeFieldElement19::new(2), PrimeFieldElement19::new(3));
-        let identity = WeierstrassAffinePoint::new(
-            None,
-            None,
-            &curve,
-        );
+        let identity = WeierstrassAffinePoint::new(None, None, &curve);
         let result = -identity;
         assert_eq!(identity, result);
     }
@@ -291,12 +328,87 @@ mod tests {
             Some(PrimeFieldElement19::new(10)),
             &curve,
         );
-        let identity = WeierstrassAffinePoint::new(
-            None,
-            None,
-            &curve,
-        );
+        let identity = WeierstrassAffinePoint::new(None, None, &curve);
         let result = p1 + p2;
         assert_eq!(result, identity);
+    }
+
+    #[test]
+    fn scalar_times_identity_is_identity() {
+        let curve =
+            WeierstrassNormalCurve::new(PrimeFieldElement19::new(2), PrimeFieldElement19::new(3));
+        let identity = WeierstrassAffinePoint::new(None, None, &curve);
+        let scalar = Scalar::new(4);
+        let result = identity * scalar;
+        assert_eq!(identity, result);
+    }
+
+    #[test]
+    fn identity_times_scalar_is_identity() {
+        let curve =
+            WeierstrassNormalCurve::new(PrimeFieldElement19::new(2), PrimeFieldElement19::new(3));
+        let identity = WeierstrassAffinePoint::new(None, None, &curve);
+        let scalar = Scalar::new(4);
+        let result = scalar * identity;
+        assert_eq!(identity, result);
+    }
+
+    #[test]
+    fn scalar_multiply_doubling() {
+        let curve =
+            WeierstrassNormalCurve::new(PrimeFieldElement19::new(2), PrimeFieldElement19::new(3));
+        let p = WeierstrassAffinePoint::new(
+            Some(PrimeFieldElement19::new(15)),
+            Some(PrimeFieldElement19::new(11)),
+            &curve,
+        );
+        let expected = WeierstrassAffinePoint::new(
+            Some(PrimeFieldElement19::new(5)),
+            Some(PrimeFieldElement19::new(10)),
+            &curve,
+        );
+        let scalar = Scalar::new(2);
+        let result = scalar * p;
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn scalar_multiply() {
+        // 3P
+        let curve =
+            WeierstrassNormalCurve::new(PrimeFieldElement19::new(2), PrimeFieldElement19::new(3));
+        let p = WeierstrassAffinePoint::new(
+            Some(PrimeFieldElement19::new(3)),
+            Some(PrimeFieldElement19::new(6)),
+            &curve,
+        );
+        let expected = WeierstrassAffinePoint::new(
+            Some(PrimeFieldElement19::new(15)),
+            Some(PrimeFieldElement19::new(11)),
+            &curve,
+        );
+        let scalar = Scalar::new(3);
+        let result = scalar * p;
+        assert_eq!(expected, result);
+
+        // 4P
+        let expected = WeierstrassAffinePoint::new(
+            Some(PrimeFieldElement19::new(5)),
+            Some(PrimeFieldElement19::new(9)),
+            &curve,
+        );
+        let scalar = Scalar::new(4);
+        let result = scalar * p;
+        assert_eq!(expected, result);
+
+        // 5P
+        let expected = WeierstrassAffinePoint::new(
+            Some(PrimeFieldElement19::new(18)),
+            Some(PrimeFieldElement19::new(0)),
+            &curve,
+        );
+        let scalar = Scalar::new(5);
+        let result = scalar * p;
+        assert_eq!(expected, result);
     }
 }
