@@ -1,7 +1,6 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 const MODULUS: u64 = 19;
-//const MODULUS: u64 = 227;
 
 /// `PrimeFieldElement19` represents an element of $GF(19)$ or $F_{19}$
 /// i.e. a finite field of prime characteristic 19.

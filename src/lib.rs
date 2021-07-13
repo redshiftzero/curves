@@ -7,7 +7,6 @@
 
 pub mod edwards;
 pub mod field;
-pub mod field_weierstrass;
-pub mod real_weierstrass;
 pub mod scalar;
 pub mod traits;
+pub mod weierstrass;
