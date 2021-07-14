@@ -9,4 +9,5 @@ pub mod edwards;
 pub mod field;
 pub mod scalar;
 pub mod traits;
+pub mod twisted_edwards;
 pub mod weierstrass;

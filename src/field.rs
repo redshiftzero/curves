@@ -69,7 +69,6 @@ impl Mul<PrimeFieldElement19> for u64 {
     type Output = PrimeFieldElement19;
 
     fn mul(self, other: PrimeFieldElement19) -> PrimeFieldElement19 {
-        //self * other
         other * self
     }
 }

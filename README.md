@@ -6,6 +6,7 @@ This repository contains various elliptic curve related examples. The implementa
 
 ### Affine space computations
 
+* [Twisted Edwards curve over a small prime field (Rust)](src/twisted_edwards.rs)
 * [Edwards curve over a small prime field (Rust)](src/edwards.rs)
 * [Weierstrass curve over a small prime field (Rust)](src/weierstrass.rs)
 * [Weierstrass curve over the reals (Python)](curves.py)
