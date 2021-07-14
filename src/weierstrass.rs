@@ -2,7 +2,7 @@ use std::ops::{Add, Mul, Neg};
 
 use crate::field::PrimeFieldElement19;
 use crate::scalar::Scalar;
-use crate::traits::EllipticCurve;
+use crate::traits::{AffinePoint, EllipticCurve};
 
 /// A point on a curve in Weierstrass normal form over $GF(19)$ in affine space.
 ///
@@ -16,6 +16,12 @@ pub struct WeierstrassAffinePoint {
     x: Option<PrimeFieldElement19>,
     y: Option<PrimeFieldElement19>,
     curve: WeierstrassNormalCurve,
+}
+
+impl AffinePoint for WeierstrassAffinePoint {
+    fn identity(&self) -> WeierstrassAffinePoint {
+        self.curve.identity()
+    }
 }
 
 /// Curve in the form $y^2 = x^3 + ax + b$.
@@ -168,39 +174,6 @@ impl Mul<Scalar> for WeierstrassAffinePoint {
 
     fn mul(self, scalar: Scalar) -> WeierstrassAffinePoint {
         scalar * self
-    }
-}
-
-impl Mul<WeierstrassAffinePoint> for Scalar {
-    type Output = WeierstrassAffinePoint;
-
-    fn mul(self, point: WeierstrassAffinePoint) -> WeierstrassAffinePoint {
-        if self.num == 0 {
-            return point.curve.identity();
-        } else if self.num < 0 {
-            -self * -point
-        } else {
-            let mut q = point;
-            let mut r: WeierstrassAffinePoint;
-            if self.num & 1 == 1 {
-                r = point;
-            } else {
-                r = point.curve.identity();
-            }
-
-            let mut i = 2;
-
-            while i <= self.num {
-                q = q + q;
-
-                if (self.num & i) == i {
-                    r = q + r;
-                }
-
-                i = i << 1;
-            }
-            r
-        }
     }
 }
 

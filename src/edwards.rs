@@ -2,7 +2,7 @@ use std::ops::{Add, Mul, Neg};
 
 use crate::field::PrimeFieldElement19;
 use crate::scalar::Scalar;
-use crate::traits::EllipticCurve;
+use crate::traits::{AffinePoint, EllipticCurve};
 
 /// Curve in the form $x**2 + y**2 = c**2 ( 1 + d * x**2 * y**2 )$.
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -20,6 +20,12 @@ pub struct EdwardsAffinePoint {
     x: PrimeFieldElement19,
     y: PrimeFieldElement19,
     curve: EdwardsCurve,
+}
+
+impl AffinePoint for EdwardsAffinePoint {
+    fn identity(&self) -> EdwardsAffinePoint {
+        self.curve.identity()
+    }
 }
 
 impl EdwardsCurve {
@@ -123,39 +129,6 @@ impl Mul<Scalar> for EdwardsAffinePoint {
 
     fn mul(self, scalar: Scalar) -> EdwardsAffinePoint {
         scalar * self
-    }
-}
-
-impl Mul<EdwardsAffinePoint> for Scalar {
-    type Output = EdwardsAffinePoint;
-
-    fn mul(self, point: EdwardsAffinePoint) -> EdwardsAffinePoint {
-        if self.num == 0 {
-            return point.curve.identity();
-        } else if self.num < 0 {
-            -self * -point
-        } else {
-            let mut q = point;
-            let mut r: EdwardsAffinePoint;
-            if self.num & 1 == 1 {
-                r = point;
-            } else {
-                r = point.curve.identity();
-            }
-
-            let mut i = 2;
-
-            while i <= self.num {
-                q = q + q;
-
-                if (self.num & i) == i {
-                    r = q + r;
-                }
-
-                i = i << 1;
-            }
-            r
-        }
     }
 }
 
